@@ -1,0 +1,58 @@
+import re
+import numpy
+
+from Tools.i18n.msgfmt import generate
+
+text = open("text.txt", encoding='utf8').read()
+text = re.sub(r'[^А-Яа-я. ]', '', text)
+text.lower()
+text.split()
+
+
+def pairs(text_read):
+    for num in range(len(text_read) - 1):
+        yield text_read[num], text_read[num + 1]
+
+
+pairs_ready = pairs(text)
+dict_words = {}
+
+for word1, word2 in pairs_ready:
+    dict_words[word1] = [word2]
+
+
+class NgramModel(object):
+
+    def number(self, n):
+        self.number_tokens = n
+        self.context = {}
+        self.ngram_counter = {}
+
+    def result(self):
+        n = self.number_tokens
+        ngram = pairs_ready
+        if ngram in self.ngram_counter:
+            self.ngram_counter[ngram] += 1.0
+        else:
+            self.ngram_counter[ngram] = 1.0
+
+    def chance(self, context, token):
+        try:
+            count_of_token = self.ngram_counter[(context, token)]
+            count_of_context = float(len(self.context[context]))
+            result_el = count_of_token / count_of_context
+        except KeyError:
+            result_el = 0.0
+        return result_el
+
+    def generate(self):
+        n = self.result.number_tokens
+        result = []
+        for _ in range(self.chance):
+            obj = numpy.random.choice(text)
+            result.append(obj)
+        return ' '.join(result)
+
+
+text_fin = generate(6, 'text.txt')
+print(text_fin.generate(20))
